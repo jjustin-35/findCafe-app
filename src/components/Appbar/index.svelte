@@ -4,4 +4,6 @@
 	const { menu } = data;
 </script>
 
-<header></header>
+<header class="py-2">
+	<nav class="container"></nav>
+</header>
