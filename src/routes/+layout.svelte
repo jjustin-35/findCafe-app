@@ -1,11 +1,9 @@
 <script>
-	import Header from './Header.svelte';
 	import Appbar from '../components/Appbar/index.svelte';
 	import './styles.css';
 </script>
 
 <div class="app">
-	<Header />
 	<Appbar />
 
 	<main>
