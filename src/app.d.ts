@@ -8,6 +8,10 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 	}
+
+	interface Window {
+		map?: google.maps.Map;
+	}
 }
 
 export {};
