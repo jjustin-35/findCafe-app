@@ -1,4 +1,5 @@
 <script>
+	import Map from '$components/Map/index.svelte';
 </script>
 
 <svelte:head>
@@ -7,6 +8,7 @@
 </svelte:head>
 
 <section>
+	<Map />
 </section>
 
 <style>
