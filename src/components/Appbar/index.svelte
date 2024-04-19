@@ -1,22 +1,19 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import { BottomNav, BottomNavItem } from 'flowbite-svelte';
 	import { HomeSolid, UserCircleSolid, HeartSolid } from 'flowbite-svelte-icons';
+
+	$: activeUrl = $page.url.pathname;
 </script>
 
-<BottomNav position="absolute" classInner="grid-cols-3">
-	<BottomNavItem btnName="Home" href='/'>
-		<HomeSolid
-			class="w-6 h-6 mb-1 text-gray-500 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-500"
-		/>
+<BottomNav {activeUrl} position="absolute" classInner="grid-cols-3">
+	<BottomNavItem btnName="Home" href="/">
+		<HomeSolid />
 	</BottomNavItem>
 	<BottomNavItem btnName="Profile" href="/profile">
-		<UserCircleSolid
-			class="w-6 h-6 mb-1 text-gray-500 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-500"
-		/>
+		<UserCircleSolid />
 	</BottomNavItem>
 	<BottomNavItem btnName="Favorite" href="/favorite">
-		<HeartSolid
-			class="w-6 h-6 mb-1 text-gray-500 dark:text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-500"
-		/>
+		<HeartSolid />
 	</BottomNavItem>
 </BottomNav>

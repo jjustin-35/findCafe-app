@@ -5,5 +5,5 @@ export type ImageType = {
 
 export type LinkType = {
 	href: string;
-  target?: "_blank" | "_self";
+	target?: '_blank' | '_self';
 };
