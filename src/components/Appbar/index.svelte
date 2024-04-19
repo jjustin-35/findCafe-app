@@ -6,7 +6,7 @@
 	$: activeUrl = $page.url.pathname;
 </script>
 
-<BottomNav {activeUrl} position="absolute" classInner="grid-cols-3">
+<BottomNav {activeUrl} position="absolute" classInner="grid-cols-3" activeClass="text-primary-normal">
 	<BottomNavItem btnName="Home" href="/">
 		<HomeSolid />
 	</BottomNavItem>
