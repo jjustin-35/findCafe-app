@@ -11,18 +11,41 @@ const mapOptions = {
 		lat: 0,
 		lng: 0
 	},
-	zoom: 4
+	zoom: 14
 };
 
-const initMap = async () => {
-    const mapElement = document.getElementById('map');
-    if (!mapElement) {
-        return;
-    }
+const getCurrentLocation = async () => {
+	// 用 promise 方便傳出位置資訊，不用 callback
+	const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+		navigator.geolocation.getCurrentPosition(resolve, reject);
+	});
+	return {
+		lat: position.coords.latitude,
+		lng: position.coords.longitude
+	};
+};
+
+const initMap = async (options?: google.maps.MapOptions) => {
+	const mapElement = document.getElementById('map');
+	if (!mapElement) {
+		return;
+	}
 	try {
 		const { Map } = await loader.importLibrary('maps');
-		const map = new Map(mapElement, mapOptions);
-		return map;
+		const { AdvancedMarkerElement } = await loader.importLibrary('marker');
+		const map = new Map(mapElement, options || mapOptions);
+		const currentLocation = await getCurrentLocation();
+
+		if (currentLocation) {
+			map.setCenter(currentLocation);
+		}
+
+		const marker = new AdvancedMarkerElement({
+			position: currentLocation,
+			map
+		});
+
+		return { map, marker };
 	} catch (error) {
 		console.log(error);
 	}
