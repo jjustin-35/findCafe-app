@@ -1,9 +1,6 @@
 <script lang="ts">
 	import { BottomNav, BottomNavItem } from 'flowbite-svelte';
 	import { HomeSolid, UserCircleSolid, HeartSolid } from 'flowbite-svelte-icons';
-	import data from './data';
-
-	const { menu } = data;
 </script>
 
 <BottomNav position="absolute" classInner="grid-cols-3">
