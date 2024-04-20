@@ -3,15 +3,16 @@ import { Loader } from '@googlemaps/js-api-loader';
 const loader = new Loader({
 	apiKey: import.meta.env.VITE_GCP_MAP_KEY,
 	version: 'weekly',
-	libraries: ['places']
+	libraries: ['places'],
 });
 
-const mapOptions = {
+const mapOptions: google.maps.MapOptions = {
 	center: {
 		lat: 0,
 		lng: 0
 	},
-	zoom: 14
+	zoom: 14,
+	mapId: import.meta.env.VITE_GCP_MAP_ID,
 };
 
 const getCurrentLocation = async () => {
