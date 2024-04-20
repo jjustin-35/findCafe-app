@@ -11,8 +11,9 @@ const mapOptions: google.maps.MapOptions = {
 		lat: 0,
 		lng: 0
 	},
-	zoom: 16,
+	zoom: 17,
 	mapId: import.meta.env.VITE_GCP_MAP_ID,
+	disableDefaultUI: true,
 };
 
 const getCurrentLocation = async () => {
