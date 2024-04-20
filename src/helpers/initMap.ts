@@ -11,7 +11,7 @@ const mapOptions: google.maps.MapOptions = {
 		lat: 0,
 		lng: 0
 	},
-	zoom: 14,
+	zoom: 16,
 	mapId: import.meta.env.VITE_GCP_MAP_ID,
 };
 
