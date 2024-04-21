@@ -1,5 +1,10 @@
 import { Loader } from '@googlemaps/js-api-loader';
 
+export type Maps = {
+	map: google.maps.Map;
+	marker: google.maps.marker.AdvancedMarkerElement;
+}
+
 const loader = new Loader({
 	apiKey: import.meta.env.VITE_GCP_MAP_KEY,
 	version: 'weekly',
@@ -50,6 +55,7 @@ const initMap = async (options?: google.maps.MapOptions) => {
 		return { map, marker };
 	} catch (error) {
 		console.log(error);
+		return;
 	}
 };
 
