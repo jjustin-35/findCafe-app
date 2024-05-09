@@ -3,7 +3,7 @@ import { Loader } from '@googlemaps/js-api-loader';
 const loader = new Loader({
 	apiKey: import.meta.env.VITE_GCP_MAP_KEY,
 	version: 'weekly',
-	libraries: ['places'],
+	libraries: ['places']
 });
 
 const mapOptions: google.maps.MapOptions = {
@@ -13,7 +13,7 @@ const mapOptions: google.maps.MapOptions = {
 	},
 	zoom: 17,
 	mapId: import.meta.env.VITE_GCP_MAP_ID,
-	disableDefaultUI: true,
+	disableDefaultUI: true
 };
 
 const getCurrentLocation = async () => {
@@ -35,6 +35,9 @@ const initMap = async (options?: google.maps.MapOptions) => {
 	try {
 		const { Map } = await loader.importLibrary('maps');
 		const { AdvancedMarkerElement } = await loader.importLibrary('marker');
+		const { PlacesService } = await loader.importLibrary('places');
+
+		// establish map
 		const map = new Map(mapElement, options || mapOptions);
 		const currentLocation = await getCurrentLocation();
 
@@ -42,12 +45,50 @@ const initMap = async (options?: google.maps.MapOptions) => {
 			map.setCenter(currentLocation);
 		}
 
+		// set marker
 		const marker = new AdvancedMarkerElement({
 			position: currentLocation,
 			map
 		});
 
-		return { map, marker };
+		// set places service
+		const placesService = new PlacesService(map);
+		placesService.nearbySearch({
+			location: currentLocation,
+			radius: 500,
+			keyword: 'coffee'
+		}, (result, status) => {
+			if (status === 'OK') {
+				console.log(result);
+				result?.forEach((place) => {
+					new AdvancedMarkerElement({
+						position: place.geometry?.location,
+						map,
+						title: place.name
+					});
+				});
+			}
+		})
+
+		const searchByKeyword = (keyword: string) => {
+			placesService.textSearch({
+				query: keyword,
+				location: currentLocation,
+				radius: 500
+			}, (result, status) => {
+				if (status === 'OK') {
+					result?.forEach((place) => {
+						new AdvancedMarkerElement({
+							position: place.geometry?.location,
+							map,
+							title: place.name
+						});
+					});
+				}
+			});
+		};
+
+		return { map, marker, searchByKeyword };
 	} catch (error) {
 		console.log(error);
 	}
