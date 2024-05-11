@@ -3,7 +3,7 @@ import { Loader } from '@googlemaps/js-api-loader';
 export type Maps = {
 	map: google.maps.Map;
 	marker: google.maps.marker.AdvancedMarkerElement;
-}
+};
 
 const loader = new Loader({
 	apiKey: import.meta.env.VITE_GCP_MAP_KEY,
@@ -32,7 +32,7 @@ const getCurrentLocation = async () => {
 	};
 };
 
-const initMap = async (options?: google.maps.MapOptions) => {
+const useMap = async (options?: google.maps.MapOptions) => {
 	const mapElement = document.getElementById('map');
 	if (!mapElement) {
 		return;
@@ -50,7 +50,7 @@ const initMap = async (options?: google.maps.MapOptions) => {
 			map.setCenter(currentLocation);
 		}
 
-		// set marker
+		// set current marker
 		const marker = new AdvancedMarkerElement({
 			position: currentLocation,
 			map
@@ -58,46 +58,53 @@ const initMap = async (options?: google.maps.MapOptions) => {
 
 		// set places service
 		const placesService = new PlacesService(map);
-		placesService.nearbySearch({
-			location: currentLocation,
-			radius: 500,
-			keyword: 'coffee'
-		}, (result, status) => {
-			if (status === 'OK') {
-				console.log(result);
-				result?.forEach((place) => {
-					new AdvancedMarkerElement({
-						position: place.geometry?.location,
-						map,
-						title: place.name
-					});
-				});
-			}
-		})
-
-		const searchByKeyword = (keyword: string) => {
-			placesService.textSearch({
-				query: keyword,
-				location: currentLocation,
-				radius: 500
-			}, (result, status) => {
-				if (status === 'OK') {
-					result?.forEach((place) => {
-						new AdvancedMarkerElement({
-							position: place.geometry?.location,
-							map,
-							title: place.name
+		const searchNearby = (location?: google.maps.LatLng, radius?: number) => {
+			placesService.nearbySearch(
+				{
+					location: location || currentLocation,
+					radius: radius || 500,
+					keyword: 'coffee'
+				},
+				(result, status) => {
+					if (status === 'OK') {
+						result?.forEach((place) => {
+							new AdvancedMarkerElement({
+								position: place.geometry?.location,
+								map,
+								title: place.name
+							});
 						});
-					});
+					}
 				}
-			});
+			);
 		};
 
-		return { map, marker, searchByKeyword };
+		const searchByKeyword = (keyword: string) => {
+			placesService.textSearch(
+				{
+					query: keyword,
+					location: currentLocation,
+					radius: 500
+				},
+				(result, status) => {
+					if (status === 'OK') {
+						result?.forEach((place) => {
+							new AdvancedMarkerElement({
+								position: place.geometry?.location,
+								map,
+								title: place.name
+							});
+						});
+					}
+				}
+			);
+		};
+
+		return { map, marker, searchNearby, searchByKeyword };
 	} catch (error) {
 		console.log(error);
 		return;
 	}
 };
 
-export default initMap;
+export default useMap;
