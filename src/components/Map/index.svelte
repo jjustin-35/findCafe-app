@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Search } from 'flowbite-svelte';
-	import initMap from '../../helpers/initMap';
+	import useMap from '../../helpers/initMap';
 	import type { Maps } from '../../helpers/initMap';
 	import './styles.css';
 
@@ -10,7 +10,8 @@
 
 	onMount(() => {
 		(async () => {
-			map = await initMap();
+			map = await useMap();
+			map?.searchNearby();
 		})();
 	});
 </script>

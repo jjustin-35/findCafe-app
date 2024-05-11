@@ -3,6 +3,8 @@ import { Loader } from '@googlemaps/js-api-loader';
 export type Maps = {
 	map: google.maps.Map;
 	marker: google.maps.marker.AdvancedMarkerElement;
+	searchNearby: (location?: google.maps.LatLng, radius?: number) => void;
+	searchByKeyword: (keyword: string) => void;
 };
 
 const loader = new Loader({
