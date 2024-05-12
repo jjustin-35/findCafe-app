@@ -5,23 +5,31 @@
 	import type { Maps } from '../../helpers/initMap';
 	import './styles.css';
 
-	let map: Maps;
-	let places: ReturnType<Maps['searchNearby']> = [];
-	let searchedPlaces: ReturnType<Maps['searchByKeyword']> = [];
+	let maps: Maps;
+	let places: Awaited<ReturnType<Maps['searchNearby']>> = [];
+	let searchedPlaces: Awaited<ReturnType<Maps['searchByKeyword']>> = [];
 
 	onMount(() => {
 		(async () => {
-			map = await useMap();
-			places = map?.searchNearby();
+			maps = await useMap();
+			places = await maps?.searchNearby();
 		})();
 	});
 
-	const handleSearch = (e: SubmitEvent) => {
+	const handleSearch = async (e: SubmitEvent) => {
 		e.preventDefault();
 		const formData = new FormData(e.target as HTMLFormElement);
 		const keyword = formData.get('keyword') as string;
-		searchedPlaces = map?.searchByKeyword(keyword);
-	}
+		searchedPlaces = await maps?.searchByKeyword(keyword);
+
+		if (!searchedPlaces.length) {
+			alert('No places found');
+			return;
+		}
+
+		// set new center
+		maps.map.setCenter(searchedPlaces[0].geometry.location);
+	};
 </script>
 
 <section class="w-full h-4/5">

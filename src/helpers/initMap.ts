@@ -1,18 +1,5 @@
 import { Loader } from '@googlemaps/js-api-loader';
 
-export type Maps = {
-	map: google.maps.Map;
-	marker: google.maps.marker.AdvancedMarkerElement;
-	searchNearby: ({
-		location,
-		radius
-	}?: {
-		location?: google.maps.LatLng;
-		radius?: number;
-	}) => google.maps.places.PlaceResult[];
-	searchByKeyword: (keyword: string) => google.maps.places.PlaceResult[];
-};
-
 const loader = new Loader({
 	apiKey: import.meta.env.VITE_GCP_MAP_KEY,
 	version: 'weekly',
@@ -40,7 +27,7 @@ const getCurrentLocation = async () => {
 	};
 };
 
-const useMap = async (options?: google.maps.MapOptions): Promise<Maps | undefined> => {
+const useMap = async (options?: google.maps.MapOptions) => {
 	const mapElement = document.getElementById('map');
 	if (!mapElement) {
 		return;
@@ -73,50 +60,51 @@ const useMap = async (options?: google.maps.MapOptions): Promise<Maps | undefine
 			location?: google.maps.LatLng;
 			radius?: number;
 		} = {}) => {
-			let places: google.maps.places.PlaceResult[] = [];
-			placesService.nearbySearch(
-				{
-					location: location || currentLocation,
-					radius: radius || 500,
-					keyword: 'coffee'
-				},
-				(result, status) => {
-					if (status === 'OK') {
-						places = result || [];
-						result?.forEach((place) => {
-							new AdvancedMarkerElement({
-								position: place.geometry?.location,
-								map,
-								title: place.name
+			const places = new Promise<google.maps.places.PlaceResult[]>((resolve) => {
+				placesService.nearbySearch(
+					{
+						location: location || currentLocation,
+						radius: radius || 500,
+						keyword: 'coffee'
+					},
+					(result, status) => {
+						if (status === 'OK') {
+							resolve(result || []);
+							result?.forEach((place) => {
+								new AdvancedMarkerElement({
+									position: place.geometry?.location,
+									map,
+									title: place.name
+								});
 							});
-						});
+						}
 					}
-				}
-			);
+				);
+			});
 			return places;
 		};
 
-		const searchByKeyword = (keyword: string) => {
-			let places: google.maps.places.PlaceResult[] = [];
-			placesService.textSearch(
-				{
-					query: keyword,
-					location: currentLocation,
-					radius: 500
-				},
-				(result, status) => {
-					if (status === 'OK') {
-						places = result || [];
-						result?.forEach((place) => {
-							new AdvancedMarkerElement({
-								position: place.geometry?.location,
-								map,
-								title: place.name
+		const searchByKeyword = async (keyword: string) => {
+			const places = await new Promise<google.maps.places.PlaceResult[]>((resolve) => {
+				placesService.textSearch(
+					{
+						query: keyword,
+						type: 'cafe'
+					},
+					(result, status) => {
+						if (status === 'OK') {
+							resolve(result || []);
+							result?.forEach((place) => {
+								new AdvancedMarkerElement({
+									position: place.geometry?.location,
+									map,
+									title: place.name
+								});
 							});
-						});
+						}
 					}
-				}
-			);
+				);
+			});
 			return places;
 		};
 
@@ -126,5 +114,7 @@ const useMap = async (options?: google.maps.MapOptions): Promise<Maps | undefine
 		return;
 	}
 };
+
+export type Maps = Awaited<ReturnType<typeof useMap>>;
 
 export default useMap;
