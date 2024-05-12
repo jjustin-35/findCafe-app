@@ -3,8 +3,14 @@ import { Loader } from '@googlemaps/js-api-loader';
 export type Maps = {
 	map: google.maps.Map;
 	marker: google.maps.marker.AdvancedMarkerElement;
-	searchNearby: (location?: google.maps.LatLng, radius?: number) => void;
-	searchByKeyword: (keyword: string) => void;
+	searchNearby: ({
+		location,
+		radius
+	}?: {
+		location?: google.maps.LatLng;
+		radius?: number;
+	}) => google.maps.places.PlaceResult[];
+	searchByKeyword: (keyword: string) => google.maps.places.PlaceResult[];
 };
 
 const loader = new Loader({
@@ -18,7 +24,7 @@ const mapOptions: google.maps.MapOptions = {
 		lat: 0,
 		lng: 0
 	},
-	zoom: 17,
+	zoom: 15,
 	mapId: import.meta.env.VITE_GCP_MAP_ID,
 	disableDefaultUI: true
 };
@@ -34,7 +40,7 @@ const getCurrentLocation = async () => {
 	};
 };
 
-const useMap = async (options?: google.maps.MapOptions) => {
+const useMap = async (options?: google.maps.MapOptions): Promise<Maps | undefined> => {
 	const mapElement = document.getElementById('map');
 	if (!mapElement) {
 		return;
@@ -60,7 +66,14 @@ const useMap = async (options?: google.maps.MapOptions) => {
 
 		// set places service
 		const placesService = new PlacesService(map);
-		const searchNearby = (location?: google.maps.LatLng, radius?: number) => {
+		const searchNearby = ({
+			location,
+			radius
+		}: {
+			location?: google.maps.LatLng;
+			radius?: number;
+		} = {}) => {
+			let places: google.maps.places.PlaceResult[] = [];
 			placesService.nearbySearch(
 				{
 					location: location || currentLocation,
@@ -69,6 +82,7 @@ const useMap = async (options?: google.maps.MapOptions) => {
 				},
 				(result, status) => {
 					if (status === 'OK') {
+						places = result || [];
 						result?.forEach((place) => {
 							new AdvancedMarkerElement({
 								position: place.geometry?.location,
@@ -79,9 +93,11 @@ const useMap = async (options?: google.maps.MapOptions) => {
 					}
 				}
 			);
+			return places;
 		};
 
 		const searchByKeyword = (keyword: string) => {
+			let places: google.maps.places.PlaceResult[] = [];
 			placesService.textSearch(
 				{
 					query: keyword,
@@ -90,6 +106,7 @@ const useMap = async (options?: google.maps.MapOptions) => {
 				},
 				(result, status) => {
 					if (status === 'OK') {
+						places = result || [];
 						result?.forEach((place) => {
 							new AdvancedMarkerElement({
 								position: place.geometry?.location,
@@ -100,6 +117,7 @@ const useMap = async (options?: google.maps.MapOptions) => {
 					}
 				}
 			);
+			return places;
 		};
 
 		return { map, marker, searchNearby, searchByKeyword };
