@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Appbar from '../components/Appbar/index.svelte';
 	import './styles.css';
 </script>
 
@@ -7,6 +6,4 @@
 	<main>
 		<slot />
 	</main>
-
-	<Appbar />
 </div>

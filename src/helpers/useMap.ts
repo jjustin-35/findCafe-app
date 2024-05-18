@@ -46,10 +46,24 @@ const useMap = async (options?: google.maps.MapOptions) => {
 		}
 
 		// set current marker
-		const marker = new AdvancedMarkerElement({
-			position: currentLocation,
-			map
-		});
+		const setMarker = (positions: (google.maps.LatLng | google.maps.LatLngLiteral)[]) => {
+			const markers = positions.map(
+				(position) =>
+					new AdvancedMarkerElement({
+						position,
+						map
+					})
+			);
+			return markers;
+		};
+
+		const clearMarker = (markers: google.maps.marker.AdvancedMarkerElement[]) => {
+			markers.forEach((marker) => {
+				marker.map = null;
+			});
+		};
+
+		const currentMarker = setMarker([currentLocation]);
 
 		// set places service
 		const placesService = new PlacesService(map);
@@ -60,7 +74,10 @@ const useMap = async (options?: google.maps.MapOptions) => {
 			location?: google.maps.LatLng;
 			radius?: number;
 		} = {}) => {
-			const places = new Promise<google.maps.places.PlaceResult[]>((resolve) => {
+			const places = new Promise<{
+				result: google.maps.places.PlaceResult[];
+				markers: google.maps.marker.AdvancedMarkerElement[];
+			}>((resolve) => {
 				placesService.nearbySearch(
 					{
 						location: location || currentLocation,
@@ -69,14 +86,15 @@ const useMap = async (options?: google.maps.MapOptions) => {
 					},
 					(result, status) => {
 						if (status === 'OK') {
-							resolve(result || []);
-							result?.forEach((place) => {
-								new AdvancedMarkerElement({
+							const markers = result?.map((place) => {
+								return new AdvancedMarkerElement({
 									position: place.geometry?.location,
 									map,
 									title: place.name
 								});
 							});
+
+							resolve({ result, markers });
 						}
 					}
 				);
@@ -85,7 +103,10 @@ const useMap = async (options?: google.maps.MapOptions) => {
 		};
 
 		const searchByKeyword = async (keyword: string) => {
-			const places = await new Promise<google.maps.places.PlaceResult[]>((resolve) => {
+			const places = await new Promise<{
+				result: google.maps.places.PlaceResult[];
+				markers: google.maps.marker.AdvancedMarkerElement[];
+			}>((resolve) => {
 				placesService.textSearch(
 					{
 						query: keyword,
@@ -93,14 +114,14 @@ const useMap = async (options?: google.maps.MapOptions) => {
 					},
 					(result, status) => {
 						if (status === 'OK') {
-							resolve(result || []);
-							result?.forEach((place) => {
-								new AdvancedMarkerElement({
+							const markers = result?.map((place) => {
+								return new AdvancedMarkerElement({
 									position: place.geometry?.location,
 									map,
 									title: place.name
 								});
 							});
+							resolve({ result, markers });
 						}
 					}
 				);
@@ -108,7 +129,7 @@ const useMap = async (options?: google.maps.MapOptions) => {
 			return places;
 		};
 
-		return { map, marker, searchNearby, searchByKeyword };
+		return { map, currentMarker, searchNearby, searchByKeyword, setMarker, clearMarker };
 	} catch (error) {
 		console.log(error);
 		return;

@@ -1,5 +1,6 @@
 <script>
 	import Map from '$components/Map/index.svelte';
+	import Appbar from '$components/Appbar/index.svelte';
 </script>
 
 <svelte:head>
@@ -9,6 +10,7 @@
 
 <section>
 	<Map />
+	<Appbar />
 </section>
 
 <style>
