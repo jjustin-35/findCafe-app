@@ -21,7 +21,7 @@
 		const formData = new FormData(e.target as HTMLFormElement);
 		const keyword = formData.get('keyword') as string;
 		if (!keyword) return;
-		maps.clearMarker([...maps.currentMarker, ...places.markers]);
+		maps.clearMarker([maps.currentMarker, ...places.markers]);
 		searchedPlaces = await maps?.searchByKeyword(keyword);
 
 		if (!searchedPlaces.result?.length) {

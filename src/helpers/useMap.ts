@@ -63,7 +63,7 @@ const useMap = async (options?: google.maps.MapOptions) => {
 			});
 		};
 
-		const currentMarker = setMarker([currentLocation]);
+		const [currentMarker] = setMarker([currentLocation]);
 
 		// set places service
 		const placesService = new PlacesService(map);
