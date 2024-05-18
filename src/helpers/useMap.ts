@@ -40,6 +40,7 @@ const useMap = async (options?: google.maps.MapOptions) => {
 		// establish map
 		const map = new Map(mapElement, options || mapOptions);
 		const currentLocation = await getCurrentLocation();
+		const infoWindow = new google.maps.InfoWindow();
 
 		if (currentLocation) {
 			map.setCenter(currentLocation);
@@ -47,13 +48,23 @@ const useMap = async (options?: google.maps.MapOptions) => {
 
 		// set current marker
 		const setMarker = (positions: (google.maps.LatLng | google.maps.LatLngLiteral)[]) => {
-			const markers = positions.map(
-				(position) =>
-					new AdvancedMarkerElement({
-						position,
-						map
-					})
-			);
+			const markers = positions.map((position) => {
+				const marker = new AdvancedMarkerElement({
+					position,
+					map
+				});
+
+				marker.addListener('click', () => {
+					infoWindow.setContent('You are here');
+					infoWindow.open({
+						anchor: marker,
+						map,
+						shouldFocus: false
+					});
+				});
+
+				return marker;
+			});
 			return markers;
 		};
 
@@ -86,13 +97,8 @@ const useMap = async (options?: google.maps.MapOptions) => {
 					},
 					(result, status) => {
 						if (status === 'OK') {
-							const markers = result?.map((place) => {
-								return new AdvancedMarkerElement({
-									position: place.geometry?.location,
-									map,
-									title: place.name
-								});
-							});
+							const placeLocations = result.map((place) => place.geometry?.location);
+							const markers = setMarker(placeLocations);
 
 							resolve({ result, markers });
 						}
@@ -114,13 +120,8 @@ const useMap = async (options?: google.maps.MapOptions) => {
 					},
 					(result, status) => {
 						if (status === 'OK') {
-							const markers = result?.map((place) => {
-								return new AdvancedMarkerElement({
-									position: place.geometry?.location,
-									map,
-									title: place.name
-								});
-							});
+							const placeLocations = result.map((place) => place.geometry?.location);
+							const markers = setMarker(placeLocations);
 							resolve({ result, markers });
 						}
 					}
