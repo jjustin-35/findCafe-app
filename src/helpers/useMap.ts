@@ -1,4 +1,6 @@
 import { Loader } from '@googlemaps/js-api-loader';
+import { colors } from '$constants/styles';
+import coffeeImg from '$lib/images/coffee-filled.svg';
 
 const loader = new Loader({
 	apiKey: import.meta.env.VITE_GCP_MAP_KEY,
@@ -34,8 +36,8 @@ const useMap = async (options?: google.maps.MapOptions) => {
 	}
 	try {
 		const { Map } = await loader.importLibrary('maps');
-		const { AdvancedMarkerElement } = await loader.importLibrary('marker');
-		const { PlacesService } = await loader.importLibrary('places');
+		const { AdvancedMarkerElement, PinElement } = await loader.importLibrary('marker');
+		const { Place } = await loader.importLibrary('places');
 
 		// establish map
 		const map = new Map(mapElement, options || mapOptions);
@@ -47,25 +49,41 @@ const useMap = async (options?: google.maps.MapOptions) => {
 		}
 
 		// set current marker
-		const setMarker = (positions: (google.maps.LatLng | google.maps.LatLngLiteral)[]) => {
-			const markers = positions.map((position) => {
+		const setMarker = (
+			data: (
+				| google.maps.places.Place
+				| { location: google.maps.LatLng | google.maps.LatLngLiteral; displayName?: string }
+			)[],
+			type?: 'cafe' | 'location'
+		) => {
+			if (!type) type = 'cafe';
+			return data.map((item) => {
+				const pin = document.createElement('img');
+				pin.src = coffeeImg;
+				pin.width = pin.height = 12;
+				const pinSvg = new PinElement({
+					glyph: pin,
+					background: colors.primary.normal,
+					borderColor: colors.white,
+					scale: 0.8
+				});
+
 				const marker = new AdvancedMarkerElement({
-					position,
-					map
+					position: item.location,
+					map,
+					...(type === 'cafe' && { content: pinSvg.element })
 				});
 
 				marker.addListener('click', () => {
-					infoWindow.setContent('You are here');
+					infoWindow.setContent(item.displayName || 'You are here');
 					infoWindow.open({
 						anchor: marker,
-						map,
-						shouldFocus: false
+						map
 					});
 				});
 
 				return marker;
 			});
-			return markers;
 		};
 
 		const clearMarker = (markers: google.maps.marker.AdvancedMarkerElement[]) => {
@@ -74,60 +92,48 @@ const useMap = async (options?: google.maps.MapOptions) => {
 			});
 		};
 
-		const [currentMarker] = setMarker([currentLocation]);
+		const [currentMarker] = setMarker([{ location: currentLocation }], 'location');
 
-		// set places service
-		const placesService = new PlacesService(map);
-		const searchNearby = ({
+		const searchNearby = async ({
 			location,
 			radius
 		}: {
 			location?: google.maps.LatLng;
 			radius?: number;
 		} = {}) => {
-			const places = new Promise<{
-				result: google.maps.places.PlaceResult[];
-				markers: google.maps.marker.AdvancedMarkerElement[];
-			}>((resolve) => {
-				placesService.nearbySearch(
-					{
-						location: location || currentLocation,
-						radius: radius || 500,
-						keyword: 'coffee'
-					},
-					(result, status) => {
-						if (status === 'OK') {
-							const placeLocations = result.map((place) => place.geometry?.location);
-							const markers = setMarker(placeLocations);
+			const request: google.maps.places.SearchNearbyRequest = {
+				fields: ['displayName', 'location', 'businessStatus'],
+				locationRestriction: {
+					center: location || currentLocation,
+					radius: radius || 1000
+				},
+				includedPrimaryTypes: ['cafe']
+			};
 
-							resolve({ result, markers });
-						}
-					}
-				);
-			});
-			return places;
+			const { places } = await Place.searchNearby(request);
+
+			const markers = setMarker(places);
+
+			return { places, markers };
 		};
 
 		const searchByKeyword = async (keyword: string) => {
-			const places = await new Promise<{
-				result: google.maps.places.PlaceResult[];
-				markers: google.maps.marker.AdvancedMarkerElement[];
-			}>((resolve) => {
-				placesService.textSearch(
-					{
-						query: keyword,
-						type: 'cafe'
-					},
-					(result, status) => {
-						if (status === 'OK') {
-							const placeLocations = result.map((place) => place.geometry?.location);
-							const markers = setMarker(placeLocations);
-							resolve({ result, markers });
-						}
-					}
-				);
-			});
-			return places;
+			const request: google.maps.places.SearchByTextRequest = {
+				textQuery: keyword,
+				fields: ['displayName', 'location', 'businessStatus'],
+				includedType: 'cafe',
+				locationBias: {
+					center: currentLocation,
+					radius: 1000
+				},
+				isOpenNow: true
+			};
+
+			const { places } = await Place.searchByText(request);
+
+			const markers = setMarker(places);
+
+			return { places, markers };
 		};
 
 		return { map, currentMarker, searchNearby, searchByKeyword, setMarker, clearMarker };
